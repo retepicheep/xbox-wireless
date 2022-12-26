@@ -53,7 +53,7 @@ class XboxControllerState(object):
             y=data[7] + (data[8] * 256),
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"XboxControllerState(left_joystick={self.left_joystick}, right_joystick={self.right_joystick})"
 
 class XboxController(object):
@@ -66,7 +66,7 @@ class XboxController(object):
         self.controller.set_nonblocking(True)
         atexit.register(self._close)
 
-    def _close(self):
+    def _close(self) -> None:
         if self.controller:
             # print("Closing device")     # TODO: Change this to a logging message
             self.controller.close()
@@ -86,7 +86,7 @@ class XboxController(object):
             if callable(observer_method):
                 observer_method()
     
-    def monitor(self):
+    def monitor(self) -> None:
         while True:
             report = self.controller.read(64)
             if report:
@@ -98,7 +98,7 @@ class XboxController(object):
                 # if report[14] == 8:
                 #     self.notify_x_button()
 
-def print_xbox_device_info():
+def print_xbox_device_info() -> None:
     for device in hid.enumerate():
         if device["product_string"] == "Xbox Wireless Controller":
             print("#" * 100)
@@ -111,7 +111,7 @@ class GameObject(object):
     def __init__(self, shooting_noise="Pew"):
         self.shooting_noise = shooting_noise
 
-    def x_button(self):
+    def x_button(self) -> None:
         print(self.shooting_noise)
 
 
