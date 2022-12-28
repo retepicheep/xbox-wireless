@@ -7,9 +7,7 @@ README = (APP_ROOT / "README.md").read_text()
 AUTHOR = "Peter Dillow"
 AUTHOR_EMAIL = "peter.dillow@proton.me"
 GITHUB_URL = "https://github.com/retepicheep/xbox_input_finder/"
-PROJECT_URLS = {
-    "Source Code": GITHUB_URL
-}
+PROJECT_URLS = {"Source Code": GITHUB_URL}
 INSTALL_REQUIRES = [
     "hidapi",
 ]

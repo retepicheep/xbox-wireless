@@ -6,7 +6,7 @@ import logging
 
 
 def calculate_axis_value(i, deadzone) -> int:
-    abs_max = (65535/2)
+    abs_max = 65535 / 2
     adjusted_i = i - abs_max
 
     if abs(adjusted_i) < deadzone:
@@ -44,15 +44,15 @@ class XboxControllerState(object):
     # Min - 0
     def __init__(self, data):
         self.left_stick = Axis(
-            x=data[1] + (data[2] * 256), 
+            x=data[1] + (data[2] * 256),
             y=data[3] + (data[4] * 256),
         )
 
         self.right_stick = Axis(
-            x=data[5] + (data[6] * 256), 
+            x=data[5] + (data[6] * 256),
             y=data[7] + (data[8] * 256),
         )
-    
+
         self.left_trigger = data[9] + (data[10] * 256)
 
         self.right_trigger = data[11] + (data[12] * 256)
@@ -61,6 +61,7 @@ class XboxControllerState(object):
 
     def __str__(self) -> str:
         return f"XboxControllerState(lj={self.left_stick}, rj={self.right_stick}, lt={self.left_trigger}, rt={self.right_trigger}, dpad={self.dpad})"
+
 
 class XboxController(object):
     _state = None
@@ -91,7 +92,7 @@ class XboxController(object):
             observer_method = getattr(observer, "x_button", None)
             if callable(observer_method):
                 observer_method()
-    
+
     def monitor(self) -> None:
         while True:
             report = self.controller.read(64)
@@ -100,17 +101,20 @@ class XboxController(object):
                 # print(report)
                 # print([report[i] for i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]])
                 print([report[i] for i in [0, 13, 14, 15]])
-                #print(report[11:13])
-                time.sleep(.5)
+                # print(report[11:13])
+                time.sleep(0.5)
                 # print(report[13], report[14])
                 # if report[14] == 8:
                 #     self.notify_x_button()
+
 
 def print_xbox_device_info() -> None:
     for device in hid.enumerate():
         if device["product_string"] == "Xbox Wireless Controller":
             print("#" * 100)
-            print(f"# 0x{device['vendor_id']:04x}:0x{device['product_id']:04x} {device['product_string']}")
+            print(
+                f"# 0x{device['vendor_id']:04x}:0x{device['product_id']:04x} {device['product_string']}"
+            )
             print("#" * 100)
             pprint(device)
 
@@ -143,4 +147,3 @@ if __name__ == "__main__":
     x.attach(b)
 
     x.monitor()
-
