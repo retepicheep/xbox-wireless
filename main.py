@@ -29,6 +29,17 @@ class Axis(object):
     def __str__(self) -> str:
         return f"(x={self.x}, y={self.y})"
 
+class DPad(object):
+    def __init__(self, dpad_state):
+        self.state = dpad_state
+        self.up = dpad_state in [1, 2, 8]
+        self.right = dpad_state in [2, 3, 4]
+        self.down = dpad_state in [4, 5, 6]
+        self.left = dpad_state in [6, 7, 8]
+
+
+    def __str__(self) -> str:
+        return f"(up={self.up}, right={self.right}, down={self.down}, {self.left})"
 class XboxControllerState(object):
     # Max - 65535
     # Min - 0
@@ -47,8 +58,10 @@ class XboxControllerState(object):
 
         self.right_trigger = data[11] + (data[12] * 256)
 
+        self.dpad = DPad(data[13])
+
     def __str__(self) -> str:
-        return f"XboxControllerState(lj={self.left_stick}, rj={self.right_stick}, lt={self.left_trigger}, rt={self.right_trigger})"
+        return f"XboxControllerState(lj={self.left_stick}, rj={self.right_stick}, lt={self.left_trigger}, rt={self.right_trigger}, dpad={self.dpad})"
 
 class XboxController(object):
     _state = None
