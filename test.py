@@ -43,18 +43,12 @@ class XboxControllerState(object):
             y=data[7] + (data[8] * 256),
         )
     
-        self.left_trigger = Axis(
-            x=data[1] + (data[2] * 256), 
-            y=data[3] + (data[4] * 256),
-        )
+        self.left_trigger = data[9] + (data[10] * 256)
 
-        self.right_trigger = Axis(
-            x=data[5] + (data[6] * 256), 
-            y=data[7] + (data[8] * 256),
-        )
+        self.right_trigger = data[11] + (data[12] * 256)
 
     def __str__(self) -> str:
-        return f"XboxControllerState(left_joystick={self.left_joystick}, right_joystick={self.right_joystick})"
+        return f"XboxControllerState(lj={self.left_joystick}, rj={self.right_joystick}, lt={self.left_trigger}, rt={self.right_trigger})"
 
 class XboxController(object):
     _state = None
@@ -92,7 +86,7 @@ class XboxController(object):
             if report:
                 print(XboxControllerState(report))
                 # print(report)
-                #print(report[1:3])
+                print(report[11:13])
                 time.sleep(.5)
                 # print(report[13], report[14])
                 # if report[14] == 8:
