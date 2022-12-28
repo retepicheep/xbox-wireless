@@ -85,8 +85,10 @@ class XboxController(object):
             report = self.controller.read(64)
             if report:
                 print(XboxControllerState(report))
-                print(report)
-                print(report[11:13])
+                # print(report)
+                # print([report[i] for i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]])
+                print([report[i] for i in [0, 13, 14, 15]])
+                #print(report[11:13])
                 time.sleep(.5)
                 # print(report[13], report[14])
                 # if report[14] == 8:
