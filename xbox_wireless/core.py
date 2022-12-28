@@ -134,10 +134,13 @@ class GameObject(object):
 
 # print_xbox_device_info()
 
-x = XboxController()
-a = GameObject()
-x.attach(a)
-b = GameObject("Bang")
-x.attach(b)
 
-x.monitor()
+if __name__ == "__main__":
+    x = XboxController()
+    a = GameObject()
+    x.attach(a)
+    b = GameObject("Bang")
+    x.attach(b)
+
+    x.monitor()
+
