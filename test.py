@@ -3,7 +3,7 @@ import atexit
 import hid
 import time
 from collections import namedtuple
-
+import logging
 # import pygame
 
 # pygame.init()
@@ -68,16 +68,16 @@ class XboxController(object):
 
     def _close(self) -> None:
         if self.controller:
-            # print("Closing device")     # TODO: Change this to a logging message
+            logging.debug("Closing device")
             self.controller.close()
             delattr(self, "controller")
 
     def attach(self, observer) -> None:
-        # print("Attached an observer.")  # TODO: Change this to a logging message
+        logging.debug("Attached an observer.")
         self._observers.append(observer)
 
     def detach(self, observer) -> None:
-        # print("Detach an observer.")    # TODO: Change this to a logging message
+        logging.debug("Detach an observer.")
         self._observers.remove(observer)
 
     def notify_x_button(self) -> None:
