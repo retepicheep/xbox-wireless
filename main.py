@@ -2,12 +2,8 @@ from pprint import pprint
 import atexit
 import hid
 import time
-from collections import namedtuple
 import logging
-# import pygame
 
-# pygame.init()
-# pprint(pygame.joystick.get_count())
 
 def calculate_axis_value(i, deadzone) -> int:
     abs_max = (65535/2)
@@ -21,6 +17,7 @@ def calculate_axis_value(i, deadzone) -> int:
         else:
             return (adjusted_i - deadzone) / (abs_max - deadzone)
 
+
 class Axis(object):
     def __init__(self, x, y, deadzone=4000):
         self.x = calculate_axis_value(x, deadzone)
@@ -28,6 +25,7 @@ class Axis(object):
 
     def __str__(self) -> str:
         return f"(x={self.x}, y={self.y})"
+
 
 class DPad(object):
     def __init__(self, dpad_state):
@@ -37,9 +35,10 @@ class DPad(object):
         self.down = dpad_state in [4, 5, 6]
         self.left = dpad_state in [6, 7, 8]
 
-
     def __str__(self) -> str:
         return f"(up={self.up}, right={self.right}, down={self.down}, {self.left})"
+
+
 class XboxControllerState(object):
     # Max - 65535
     # Min - 0
