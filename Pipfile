@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 xbox-wireless = {editable = true, extras = ["dev"], path = "."}
+hid = "*"
 
 [dev-packages]
 
