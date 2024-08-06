@@ -36,7 +36,7 @@ class DPad(object):
         self.left = dpad_state in [6, 7, 8]
 
     def __str__(self) -> str:
-        return f"(up={self.up}, right={self.right}, down={self.down}, {self.left})"
+        return f"(up={self.up}, right={self.right}, down={self.down}, left={self.left})"
 
 
 class XboxControllerState(object):
