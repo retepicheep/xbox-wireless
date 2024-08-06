@@ -25,7 +25,7 @@ If you prefer to use pipenv for testing, run the following command to setup your
 environment.
 
 ```
-pipenv install --pre "-e . [dev]"
+pipenv install -e '.[dev]'
 ```
 
 ## How to Contribute
