@@ -18,6 +18,14 @@ def calculate_axis_value(i, deadzone) -> int:
             return (adjusted_i - deadzone) / (abs_max - deadzone)
 
 
+def find_hid_devices(vendor_id=1118, product_id=2835) -> list:
+    hid_devices = []
+    for h in hid.enumerate(vendor_id, product_id):
+        hid_devices.append(h)
+    return hid_devices
+    # return hid.enumerate(vendor_id, product_id)
+
+
 class Axis(object):
     def __init__(self, x, y, deadzone=4000):
         self.x = calculate_axis_value(x, deadzone)
@@ -39,6 +47,35 @@ class DPad(object):
         return f"(up={self.up}, right={self.right}, down={self.down}, left={self.left})"
 
 
+class Button(object):
+    def __init__(self, buttons):
+        self.buttons = buttons
+        self.a = True if buttons & 1 else False
+        self.b = True if buttons & 2 else False
+        self.x = True if buttons & 8 else False
+        self.y = True if buttons & 16 else False
+        self.lb = True if buttons & 64 else False
+        self.rb = True if buttons & 128 else False
+
+    def pressed_buttons(self):
+        button_list = []
+        if self.x:
+            button_list.append("x_button")
+        if self.y:
+            button_list.append("y_button")
+
+        return button_list
+
+    def get_state(self, button):
+        if button == "x_button":
+            return self.x
+        elif button == "y_button":
+            return self.y
+
+    def __str__(self) -> str:
+        return f"(a={self.a}, b={self.b}, x={self.x}, y={self.y}, lb={self.lb}, rb={self.rb})"
+
+
 class XboxControllerState(object):
     # Max - 65535
     # Min - 0
@@ -58,19 +95,27 @@ class XboxControllerState(object):
         self.right_trigger = data[11] + (data[12] * 256)
 
         self.dpad = DPad(data[13])
+        self.buttons = Button(data[14])
 
     def __str__(self) -> str:
-        return f"XboxControllerState(lj={self.left_stick}, rj={self.right_stick}, lt={self.left_trigger}, rt={self.right_trigger}, dpad={self.dpad})"
+        return f"XboxControllerState(lj={self.left_stick}, rj={self.right_stick}, lt={self.left_trigger}, rt={self.right_trigger}, dpad={self.dpad}, buttons={self.buttons})"
 
 
 class XboxController(object):
     _state = None
     _observers = []
 
-    def __init__(self, vendor_id=1118, product_id=2835) -> None:
-        self.controller = hid.device()
-        self.controller.open(vendor_id, product_id)
-        self.controller.set_nonblocking(True)
+    def __init__(
+        self,
+        vendor_id=1118,
+        product_id=2835,
+        reporting_enabled=False,
+        reporting_sleep=0,
+    ) -> None:
+        self.reporting_enabled = reporting_enabled
+        self.reporting_sleep = reporting_sleep
+        self.controller = hid.Device(vendor_id, product_id)
+        self.controller.set_nonblocking = True
         atexit.register(self._close)
 
     def _close(self) -> None:
@@ -93,19 +138,40 @@ class XboxController(object):
             if callable(observer_method):
                 observer_method()
 
+    def notify_y_button(self) -> None:
+        for observer in self._observers:
+            observer_method = getattr(observer, "y_button", None)
+            if callable(observer_method):
+                observer_method()
+
+    def notify_buttons(self, buttons) -> None:
+        for observer in self._observers:
+            for button in buttons:
+                observer_method = getattr(observer, button, None)
+                if callable(observer_method):
+                    observer_method()
+
     def monitor(self) -> None:
         while True:
             report = self.controller.read(64)
+
             if report:
-                print(XboxControllerState(report))
-                # print(report)
-                # print([report[i] for i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]])
-                print([report[i] for i in [0, 13, 14, 15]])
-                # print(report[11:13])
-                time.sleep(0.5)
-                # print(report[13], report[14])
-                # if report[14] == 8:
+                state = XboxControllerState(report)
+
+                # Print debug state
+                if self.reporting_enabled:
+                    print(state)
+                    if self.reporting_sleep != 0:
+                        time.sleep(self.reporting_sleep)
+
+                # Call subscribers
+                # if state.buttons.x:
                 #     self.notify_x_button()
+
+                # if state.buttons.y:
+                #     self.notify_y_button()
+
+                self.notify_buttons(state.buttons.pressed_buttons())
 
 
 def print_xbox_device_info() -> None:
@@ -120,11 +186,15 @@ def print_xbox_device_info() -> None:
 
 
 class GameObject(object):
-    def __init__(self, shooting_noise="Pew"):
+    def __init__(self, shooting_noise="Pew", jumping_noise="boing"):
         self.shooting_noise = shooting_noise
+        self.jumping_noise = jumping_noise
 
     def x_button(self) -> None:
         print(self.shooting_noise)
+
+    def y_button(self) -> None:
+        print(self.jumping_noise)
 
 
 # gamepad = hid.device()
@@ -140,6 +210,8 @@ class GameObject(object):
 
 
 if __name__ == "__main__":
+    # x = XboxController(reporting_enabled=True, reporting_sleep=0.5)
+    pprint(find_hid_devices())
     x = XboxController()
     a = GameObject()
     x.attach(a)
