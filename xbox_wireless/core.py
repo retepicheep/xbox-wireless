@@ -1,8 +1,10 @@
 from pprint import pprint
 import atexit
 import hid
-import time
+
+# import time
 import logging
+import asyncio
 
 
 def calculate_axis_value(i, deadzone) -> int:
@@ -18,12 +20,51 @@ def calculate_axis_value(i, deadzone) -> int:
             return (adjusted_i - deadzone) / (abs_max - deadzone)
 
 
-def find_hid_devices(vendor_id=1118, product_id=2835) -> list:
-    hid_devices = []
-    for h in hid.enumerate(vendor_id, product_id):
-        hid_devices.append(h)
-    return hid_devices
+def create_devices(vendor_id=1118, product_id=2835) -> None:
+    devices = []
+    for device in hid.enumerate(vendor_id, product_id):
+        vendor_id = device["vendor_id"]
+        product_id = device["product_id"]
+        device_path = device["path"]
+
+        if vendor_id == 0 or product_id == 0:
+            continue
+        pprint(f"Device found: {vendor_id}, {product_id}, {device_path}")
+
+        # try:
+        #     # Try opening the device by its path
+        #     h = hid.Device(path=device_path)
+        #     pprint(f"Device serial: {h.serial}")
+        #     serial = h.serial
+        #     h.close()
+        # except hid.HIDException as e:
+        #     pprint(f"Failed to open device: {e}")
+        #     continue
+
+        try:
+            controller = XboxController(
+                device_path,
+                # vendor_id=vendor_id,
+                # product_id=product_id,
+            )
+            devices.append(controller)
+        except hid.HIDException as e:
+            pprint(f"Failed to create XboxController object: {e}")
+            continue
+
+    if len(devices) == 0:
+        raise Exception("No Controllers Found")
+
+    return devices
+    # controlers.append(XboxController(device.serial, vendor_id, product_id))
+
     # return hid.enumerate(vendor_id, product_id)
+
+
+async def tasks():
+    tasks = [asyncio.create_task(con.monitor()) for con in controllers]
+
+    await asyncio.gather(*tasks)
 
 
 class Axis(object):
@@ -107,14 +148,16 @@ class XboxController(object):
 
     def __init__(
         self,
-        vendor_id=1118,
-        product_id=2835,
-        reporting_enabled=False,
+        device_path,
+        # vendor_id=1118,
+        # product_id=2835,
+        reporting_enabled=True,
         reporting_sleep=0,
     ) -> None:
+        self.device_path = device_path
         self.reporting_enabled = reporting_enabled
         self.reporting_sleep = reporting_sleep
-        self.controller = hid.Device(vendor_id, product_id)
+        self.controller = hid.Device(path=device_path)
         self.controller.set_nonblocking = True
         atexit.register(self._close)
 
@@ -151,27 +194,32 @@ class XboxController(object):
                 if callable(observer_method):
                     observer_method()
 
-    def monitor(self) -> None:
-        while True:
-            report = self.controller.read(64)
+    async def monitor(self) -> None:
+        print(f"{self.device_path}: Start Read")
+        report = self.controller.read(64)
+        print(f"{self.device_path}: End Read")
 
-            if report:
-                state = XboxControllerState(report)
+        if report:
+            state = XboxControllerState(report)
 
-                # Print debug state
-                if self.reporting_enabled:
-                    print(state)
-                    if self.reporting_sleep != 0:
-                        time.sleep(self.reporting_sleep)
+            # Print debug state
+            if self.reporting_enabled:
+                print(f"{self.device_path}: {state}")
+                if self.reporting_sleep != 0:
+                    asyncio.sleep(self.reporting_sleep)
 
-                # Call subscribers
-                # if state.buttons.x:
-                #     self.notify_x_button()
+            # Call subscribers
+            # if state.buttons.x:
+            #     self.notify_x_button()
 
-                # if state.buttons.y:
-                #     self.notify_y_button()
+            # if state.buttons.y:
+            #     self.notify_y_button()
 
-                self.notify_buttons(state.buttons.pressed_buttons())
+            self.notify_buttons(state.buttons.pressed_buttons())
+        asyncio.sleep(0)
+
+    def notify():
+        pass
 
 
 def print_xbox_device_info() -> None:
@@ -211,11 +259,10 @@ class GameObject(object):
 
 if __name__ == "__main__":
     # x = XboxController(reporting_enabled=True, reporting_sleep=0.5)
-    pprint(find_hid_devices())
-    x = XboxController()
-    a = GameObject()
-    x.attach(a)
-    b = GameObject("Bang")
-    x.attach(b)
-
-    x.monitor()
+    controllers = create_devices()
+    pprint(controllers)
+    for con_num, con in enumerate(controllers):
+        print(con_num)
+        con.attach(GameObject(f"{con_num} - bang", f"{con_num} - sproing"))
+    while True:
+        asyncio.run(tasks())
