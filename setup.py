@@ -1,6 +1,6 @@
 from pathlib import Path
 from setuptools import setup, find_packages
-from .xbox_wireless.version import __version__
+from xbox_wireless.version import __version__
 
 DESCRIPTION = "A python module for using a bluetooth xbox controller from a mac."
 APP_ROOT = Path(__file__).parent
