@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.core import DPad
+from xbox_wireless.core import DPad
 
 
 class TestDPad(TestCase):
